@@ -5,7 +5,8 @@
   "license": "MIT",
   "require": {
     "php": "^8.2",
-    "illuminate/support": ">=10.0"
+    "illuminate/support": ">=10.0",
+    "darkaonline/l5-swagger": "^2.1"
   },
   "autoload": {
     "psr-4": {
