@@ -12,6 +12,30 @@ function shellEscape(value: string): string {
   return `'${value.replace(/'/g, `'\"'\"'`)}'`
 }
 
+const FORBIDDEN_BROWSER_REQUEST_HEADERS = new Set([
+  'cookie',
+  'cookie2',
+])
+
+export function findForbiddenBrowserRequestHeaders(headers: Record<string, string>): string[] {
+  return Object.keys(headers)
+    .filter(name => FORBIDDEN_BROWSER_REQUEST_HEADERS.has(name.toLowerCase()))
+    .sort((left, right) => left.localeCompare(right))
+}
+
+export function stripForbiddenBrowserRequestHeaders(headers: Record<string, string>): Record<string, string> {
+  const next: Record<string, string> = {}
+  Object.entries(headers).forEach(([name, value]) => {
+    if (FORBIDDEN_BROWSER_REQUEST_HEADERS.has(name.toLowerCase())) {
+      return
+    }
+
+    next[name] = value
+  })
+
+  return next
+}
+
 export function interpolatePathParams(pathTemplate: string, values: Record<string, string>): {
   path: string
   missing: string[]

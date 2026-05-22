@@ -27,8 +27,10 @@ import { resolveRequestBodySchemaForPathValues } from './requestBodySchemaResolv
 import {
   buildCurlCommand,
   buildRequestUrl,
+  findForbiddenBrowserRequestHeaders,
   interpolatePathParams,
   serializeQueryParams,
+  stripForbiddenBrowserRequestHeaders,
 } from './requestEmulatorUtils'
 import {
   resolveInitialParameterValue,
@@ -240,6 +242,19 @@ function isStructuredFormContentType(contentType: string | null): boolean {
   return isJsonContentType(contentType) || isMultipartContentType(contentType) || isUrlEncodedContentType(contentType)
 }
 
+function isEmptySerializedValue(input: RequestEmulatorParamInput): boolean {
+  return serializeParameterValue(input.spec, input.value).every(value => value.trim() === '')
+}
+
+function isValidJsonText(value: string): boolean {
+  try {
+    JSON.parse(value)
+    return true
+  } catch {
+    return false
+  }
+}
+
 function appendFormDataValue(
   target: FormData,
   key: string,
@@ -410,6 +425,11 @@ export function useRequestEmulator(options: UseRequestEmulatorOptions) {
     return interpolatePathParams(url, pathValues.value)
   })
 
+  const mergedCookieHeader = computed(() => {
+    const cookieHeader = buildCookieHeader(paramInputs.value)
+    return mergeCookieHeaders(cookieHeader, options.authorization.value?.target.cookies ?? {})
+  })
+
   function replaceFormWarnings(nextWarnings: string[]) {
     requestBodyFormWarnings.value = [...new Set(nextWarnings)]
   }
@@ -463,8 +483,6 @@ export function useRequestEmulator(options: UseRequestEmulatorOptions) {
     requestBodyText.value = payload === null ? '' : JSON.stringify(payload, null, 2)
     requestBodyJsonWarning.value = null
   }
-
-  const validationErrors = computed<RequestEmulatorValidationError[]>(() => [])
 
   const transportRequestBody = computed<BodyInit | null>(() => {
     if (!hasRequestBody.value) {
@@ -569,6 +587,81 @@ export function useRequestEmulator(options: UseRequestEmulatorOptions) {
     return null
   })
 
+  const transportHeaders = computed<Record<string, string>>(() => {
+    const headers: Record<string, string> = {
+      ...headerValues.value,
+      ...(options.authorization.value?.target.headers ?? {}),
+    }
+
+    if (mergedCookieHeader.value) {
+      headers.Cookie = mergedCookieHeader.value
+    }
+
+    const hasTransportBody = transportRequestBody.value !== null
+    const skipExplicitMultipartHeader = bodyEditorMode.value === 'form' && isMultipartRequestBody.value
+    if (bodyMeta.value.contentType && hasTransportBody && !skipExplicitMultipartHeader) {
+      headers['Content-Type'] = bodyMeta.value.contentType
+    }
+
+    return headers
+  })
+
+  const validationErrors = computed<RequestEmulatorValidationError[]>(() => {
+    const errors: RequestEmulatorValidationError[] = []
+    const endpoint = options.endpoint.value
+
+    if (!endpoint) {
+      errors.push({
+        field: 'endpoint',
+        message: 'Select an endpoint before sending a request.',
+      })
+      return errors
+    }
+
+    requestPath.value.missing.forEach((name) => {
+      errors.push({
+        field: `path:${name}`,
+        message: `Path parameter "${name}" is required.`,
+      })
+    })
+
+    paramInputs.value.forEach((input) => {
+      if (!input.required || !isEmptySerializedValue(input)) {
+        return
+      }
+
+      errors.push({
+        field: input.key,
+        message: `${input.in} parameter "${input.name}" is required.`,
+      })
+    })
+
+    const rawBody = requestBodyText.value.trim()
+    if (bodyMeta.value.required && transportRequestBody.value === null) {
+      errors.push({
+        field: 'body',
+        message: 'Request body is required.',
+      })
+    }
+
+    if (isJsonRequestBody.value && rawBody !== '' && !isValidJsonText(rawBody)) {
+      errors.push({
+        field: 'body',
+        message: 'Request body must be valid JSON.',
+      })
+    }
+
+    const forbiddenHeaders = findForbiddenBrowserRequestHeaders(transportHeaders.value)
+    if (forbiddenHeaders.length > 0) {
+      errors.push({
+        field: 'cookie',
+        message: `Browser fetch cannot set ${forbiddenHeaders.join(', ')} headers. Use the generated cURL command or existing browser session cookies.`,
+      })
+    }
+
+    return errors
+  })
+
   const preparedRequest = computed<RequestEmulatorPreparedRequest | null>(() => {
     const endpoint = options.endpoint.value
     if (!endpoint) {
@@ -585,21 +678,7 @@ export function useRequestEmulator(options: UseRequestEmulatorOptions) {
 
     const query = serializeQueryParams(querySource)
     const url = buildRequestUrl(options.baseApiUrl.value, requestPath.value.path, query)
-    const headers: Record<string, string> = {
-      ...headerValues.value,
-      ...(authorization?.target.headers ?? {}),
-    }
-    const cookieHeader = buildCookieHeader(paramInputs.value)
-    const mergedCookieHeader = mergeCookieHeaders(cookieHeader, authorization?.target.cookies ?? {})
-    if (mergedCookieHeader) {
-      headers.Cookie = mergedCookieHeader
-    }
-
-    const hasTransportBody = transportRequestBody.value !== null
-    const skipExplicitMultipartHeader = bodyEditorMode.value === 'form' && isMultipartRequestBody.value
-    if (bodyMeta.value.contentType && hasTransportBody && !skipExplicitMultipartHeader) {
-      headers['Content-Type'] = bodyMeta.value.contentType
-    }
+    const headers = transportHeaders.value
 
     authorization?.warnings.forEach((message) => {
       emitWarningOnce(`[useRequestEmulator] Security resolution warning: ${message}`)
@@ -627,7 +706,7 @@ export function useRequestEmulator(options: UseRequestEmulatorOptions) {
     return prepared
   })
 
-  const isRequestValid = computed(() => preparedRequest.value !== null)
+  const isRequestValid = computed(() => preparedRequest.value !== null && validationErrors.value.length === 0)
 
   function initializeRequestBodyState() {
     requestBodyJsonWarning.value = null
@@ -683,16 +762,19 @@ export function useRequestEmulator(options: UseRequestEmulatorOptions) {
 
   async function sendRequest() {
     const prepared = preparedRequest.value
-    if (!prepared) {
+    const currentValidationErrors = validationErrors.value
+    if (!prepared || currentValidationErrors.length > 0) {
       responseState.value = {
         isSending: false,
         result: null,
         error: {
           code: 'invalid_request',
-          message: 'Request is not ready yet.',
+          message: currentValidationErrors[0]?.message ?? 'Request is not ready yet.',
         },
       }
-      console.warn('[useRequestEmulator] Request send skipped because endpoint is missing')
+      console.warn('[useRequestEmulator] Request send skipped because validation failed', {
+        errors: currentValidationErrors,
+      })
       return
     }
 
@@ -713,8 +795,9 @@ export function useRequestEmulator(options: UseRequestEmulatorOptions) {
       const startAt = performance.now()
       const response = await fetch(prepared.url, {
         method: prepared.method.toUpperCase() as Uppercase<HttpMethod>,
-        headers: prepared.headers,
+        headers: stripForbiddenBrowserRequestHeaders(prepared.headers),
         body: prepared.body,
+        credentials: 'same-origin',
         signal: controller.signal,
       })
       const elapsedMs = Math.round(performance.now() - startAt)

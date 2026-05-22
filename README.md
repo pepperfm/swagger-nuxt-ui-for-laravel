@@ -31,7 +31,7 @@ php artisan l5-swagger:generate
 2. `l5-swagger` configured docs path
 3. `storage/api-docs/api-docs.json`
 
-## Legacy npm Installer
+## Legacy JS Installer
 
 `bunx swagger-ui-bridge-install` is deprecated and now prints migration guidance only.
 Composer install is the canonical flow.

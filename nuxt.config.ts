@@ -57,7 +57,6 @@ export default defineNuxtConfig({
   // },
   //
   ui: {
-    mdc: true,
     fonts: false,
   },
 })

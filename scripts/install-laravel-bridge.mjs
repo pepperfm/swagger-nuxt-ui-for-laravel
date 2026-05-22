@@ -1,7 +1,7 @@
 import process from 'node:process'
 
 /**
- * Print migration hints for the deprecated npm installer entrypoint.
+ * Print migration hints for the deprecated JS installer entrypoint.
  *
  * @returns {{ ok: true, skipped: true, reason: string }} Deprecated installer status payload.
  */

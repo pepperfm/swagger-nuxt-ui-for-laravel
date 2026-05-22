@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.2.2",
   "private": true,
-  "packageManager": "bun@1.3.9",
+  "packageManager": "bun@1.3.14",
   "exports": {
     ".": {
       "types": "./dist/lib/types.d.ts",
@@ -22,42 +22,53 @@
     "build:app": "nuxt build",
     "build:lib": "vite build --config vite.lib.config.ts && vue-tsc -p tsconfig.lib.json --declaration --emitDeclarationOnly",
     "build:viewer": "vite build --logLevel error --config vite.viewer.config.ts",
-    "build:bridge-assets": "vite build --logLevel error --config vite.viewer.config.ts && node ./scripts/sync-bridge-viewer-assets.mjs",
+    "build:bridge-assets": "vite build --logLevel error --config vite.viewer.config.ts && bun ./scripts/sync-bridge-viewer-assets.mjs",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "bridge:install": "node ./scripts/cli/install-bridge.mjs",
+    "bridge:install": "bun ./scripts/cli/install-bridge.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
+    "audit": "bun audit --production",
+    "test": "bun test",
+    "test:php": "find src routes config -name '*.php' -exec php -l {} +",
     "typecheck": "nuxt typecheck"
   },
   "peerDependencies": {
-    "vue": "^3.5.0"
+    "vue": "^3.5.34"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.49",
-    "@nuxt/ui": "^4.4.0",
-    "@vueuse/core": "^13.9.0",
-    "nuxt": "^4.3.1"
+    "@iconify-json/lucide": "^1.2.109",
+    "@nuxt/ui": "^4.8.0",
+    "@vueuse/core": "^14.3.0",
+    "nuxt": "^4.4.6",
+    "vue-router": "^5.0.7"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^5.3.0",
-    "@nuxt/eslint": "^1.4.1",
+    "@antfu/eslint-config": "^9.0.0",
+    "@nuxt/eslint": "^1.15.2",
     "@types/node": "^25.9.1",
-    "@vitejs/plugin-vue": "^6.0.1",
-    "eslint": "^9.35.0",
-    "typescript": "^5.8.3",
-    "vite": "^7.3.1",
-    "vue-tsc": "^2.2.10"
-  },
-  "pnpm": {
-    "ignoredBuiltDependencies": [
-      "@parcel/watcher",
-      "esbuild",
-      "vue-demi"
-    ]
+    "@vitejs/plugin-vue": "^6.0.7",
+    "eslint": "^10.4.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14",
+    "vue-tsc": "^3.3.1"
   },
   "resolutions": {
+    "brace-expansion": "5.0.6",
+    "defu": "6.1.7",
     "estree-walker": "2.0.2",
-    "unimport": "4.1.1"
+    "flatted": "3.4.2",
+    "glob": "13.0.6",
+    "h3": "1.15.11",
+    "lodash": "4.18.1",
+    "minimatch": "10.2.5",
+    "picomatch": "4.0.4",
+    "postcss": "8.5.15",
+    "rollup": "4.60.4",
+    "tar": "7.5.15",
+    "unimport": "4.1.1",
+    "vite": "8.0.14",
+    "ws": "8.20.1",
+    "yaml": "2.9.0"
   }
 }
