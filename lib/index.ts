@@ -27,6 +27,8 @@ export {
   hydrateRequestBodyFormValues,
 } from './composables/requestBodyFormState'
 export { resolveRequestBodyFormInputs } from './composables/requestBodyInputResolver'
+export { resolveRequestBodySchemaForPathValues } from './composables/requestBodySchemaResolver'
+export type { RequestBodySchemaResolution } from './composables/requestBodySchemaResolver'
 export {
   buildCurlCommand,
   buildRequestUrl,

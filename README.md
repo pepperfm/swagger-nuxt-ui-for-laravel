@@ -12,7 +12,7 @@ Laravel-first package with offline Nuxt UI viewer assets for OpenAPI docs.
 ## Install (Laravel)
 
 ```bash
-composer require pepperfm/swagger-nuxt-ui-for-laravel
+composer r pepperfm/swagger-nuxt-ui-for-laravel
 ```
 
 Optional config publish:
@@ -20,8 +20,6 @@ Optional config publish:
 ```bash
 php artisan vendor:publish --tag=swagger-ui-bridge-config
 ```
-
-Generate docs (if using `darkaonline/l5-swagger`):
 
 ```bash
 php artisan l5-swagger:generate

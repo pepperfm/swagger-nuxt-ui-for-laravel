@@ -23,6 +23,7 @@ import {
   hydrateRequestBodyFormValues,
 } from './requestBodyFormState'
 import { resolveRequestBodyFormInputs } from './requestBodyInputResolver'
+import { resolveRequestBodySchemaForPathValues } from './requestBodySchemaResolver'
 import {
   buildCurlCommand,
   buildRequestUrl,
@@ -337,6 +338,11 @@ export function useRequestEmulator(options: UseRequestEmulatorOptions) {
     header: paramInputs.value.filter(input => input.in === 'header'),
     cookie: paramInputs.value.filter(input => input.in === 'cookie'),
   }))
+  const resolvedBodySchema = computed(() => resolveRequestBodySchemaForPathValues(
+    bodyMeta.value.schema,
+    options.components.value,
+    groupedInputs.value.path,
+  ))
 
   function emitWarningOnce(message: string, context?: Record<string, unknown>) {
     if (emittedWarnings.value.has(message)) {
@@ -623,20 +629,15 @@ export function useRequestEmulator(options: UseRequestEmulatorOptions) {
 
   const isRequestValid = computed(() => preparedRequest.value !== null)
 
-  function initializeRequestState() {
-    const nextInputs: RequestEmulatorParamInput[] = options.parameters.value
-      .map(createParamInput)
-      .filter((input): input is RequestEmulatorParamInput => input !== null)
-
-    paramInputs.value = nextInputs
-    emittedWarnings.value = new Set()
+  function initializeRequestBodyState() {
     requestBodyJsonWarning.value = null
 
     const meta = bodyMeta.value
-    const baseExample = meta.example ?? generateExampleFromSchema(meta.schema, options.components.value)
+    const schema = resolvedBodySchema.value.schema ?? meta.schema
+    const baseExample = meta.example ?? generateExampleFromSchema(schema, options.components.value)
     requestBodyText.value = stringifyUnknown(baseExample)
     if (supportsStructuredFormBody.value) {
-      const bodyFormResolution = resolveRequestBodyFormInputs(meta.schema, options.components.value)
+      const bodyFormResolution = resolveRequestBodyFormInputs(schema, options.components.value)
       requestBodyFormInputs.value = bodyFormResolution.inputs
       requestBodyFormValues.value = createInitialRequestBodyFormValues(bodyFormResolution.inputs)
       replaceFormWarnings(bodyFormResolution.warnings)
@@ -658,6 +659,16 @@ export function useRequestEmulator(options: UseRequestEmulatorOptions) {
       requestBodyFormValues.value = {}
       replaceFormWarnings([])
     }
+  }
+
+  function initializeRequestState() {
+    const nextInputs: RequestEmulatorParamInput[] = options.parameters.value
+      .map(createParamInput)
+      .filter((input): input is RequestEmulatorParamInput => input !== null)
+
+    paramInputs.value = nextInputs
+    emittedWarnings.value = new Set()
+    initializeRequestBodyState()
 
     responseState.value = {
       isSending: false,
@@ -769,6 +780,13 @@ export function useRequestEmulator(options: UseRequestEmulatorOptions) {
       initializeRequestState()
     },
     { immediate: true },
+  )
+
+  watch(
+    () => resolvedBodySchema.value.key,
+    () => {
+      initializeRequestBodyState()
+    },
   )
 
   watch(
