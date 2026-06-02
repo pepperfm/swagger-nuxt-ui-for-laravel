@@ -250,13 +250,14 @@ watch(
 
 <template>
   <div class="swagger-ui-param-control">
-    <USelect
+    <USelectMenu
       v-if="spec.control === 'select'"
       v-model="selectValue"
       :items="spec.options"
       value-key="value"
       label-key="label"
       :placeholder="spec.placeholder"
+      :search-input="true"
       :size="controlSize"
       :disabled="disabled"
       class="w-full min-h-11"
