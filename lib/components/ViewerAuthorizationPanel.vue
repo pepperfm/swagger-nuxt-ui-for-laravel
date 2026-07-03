@@ -25,11 +25,19 @@ function inputTypeFor(scheme: NormalizedSecuritySchemeMeta): 'password' | 'text'
   return scheme.kind === 'http-basic' ? 'text' : 'password'
 }
 
+function isAuthorizationHeader(headerName: string | null): boolean {
+  return headerName?.trim().toLowerCase() === 'authorization'
+}
+
 function placeholderFor(scheme: NormalizedSecuritySchemeMeta): string {
   switch (scheme.kind) {
     case 'http-basic':
       return 'username:password'
     case 'api-key-header':
+      if (isAuthorizationHeader(scheme.headerName)) {
+        return 'Bearer token or Authorization value'
+      }
+
       return scheme.headerName ? `Header value for ${scheme.headerName}` : 'API key'
     case 'api-key-query':
       return scheme.queryName ? `Query value for ${scheme.queryName}` : 'API key'
@@ -42,6 +50,10 @@ function placeholderFor(scheme: NormalizedSecuritySchemeMeta): string {
 
 function helpFor(scheme: NormalizedSecuritySchemeMeta): string {
   if (scheme.kind === 'api-key-header' && scheme.headerName) {
+    if (isAuthorizationHeader(scheme.headerName)) {
+      return 'Header: Authorization; bare token is sent as Bearer'
+    }
+
     return `Header: ${scheme.headerName}`
   }
 

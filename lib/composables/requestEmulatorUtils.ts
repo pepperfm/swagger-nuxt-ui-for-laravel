@@ -167,6 +167,28 @@ function encodeBasicCredentials(raw: string): string {
   return raw
 }
 
+function isAuthorizationHeader(headerName: string): boolean {
+  return headerName.trim().toLowerCase() === 'authorization'
+}
+
+function hasAuthorizationScheme(credential: string): boolean {
+  return /^[a-z][\w!#$%&'*+.^`|~-]*\s+\S/i.test(credential.trim())
+}
+
+function bearerAuthorizationValue(credential: string): string {
+  const normalized = credential.trim()
+
+  return hasAuthorizationScheme(normalized) ? normalized : `Bearer ${normalized}`
+}
+
+function apiKeyHeaderValue(headerName: string, credential: string): string {
+  if (!isAuthorizationHeader(headerName)) {
+    return credential
+  }
+
+  return bearerAuthorizationValue(credential)
+}
+
 export function normalizeSecuritySchemeMeta(
   key: string,
   securityScheme: OpenApiSecurityScheme | undefined,
@@ -345,14 +367,14 @@ function applyCredentialForScheme(
     case 'http-bearer':
     case 'oauth2-bearer':
     case 'openid-connect-bearer':
-      target.headers.Authorization = `Bearer ${credential}`
+      target.headers.Authorization = bearerAuthorizationValue(credential)
       return
     case 'http-basic':
       target.headers.Authorization = `Basic ${encodeBasicCredentials(credential)}`
       return
     case 'api-key-header':
       if (meta.headerName) {
-        target.headers[meta.headerName] = credential
+        target.headers[meta.headerName] = apiKeyHeaderValue(meta.headerName, credential)
       }
       return
     case 'api-key-query':

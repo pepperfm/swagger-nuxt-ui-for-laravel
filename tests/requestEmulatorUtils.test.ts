@@ -39,6 +39,62 @@ describe('requestEmulatorUtils', () => {
     expect(authorization.target.headers.Authorization).toBe('Bearer secret-token')
   })
 
+  test('preserves explicit bearer credentials for http bearer schemes', () => {
+    const authorization = resolveRequestAuthorization({
+      securityRequirements: [{ bearerAuth: [] }],
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+        },
+      },
+      credentials: {
+        bearerAuth: 'Bearer secret-token',
+      },
+    })
+
+    expect(authorization.hasSatisfiedRequirement).toBe(true)
+    expect(authorization.target.headers.Authorization).toBe('Bearer secret-token')
+  })
+
+  test('treats bare Authorization apiKey credentials as bearer tokens', () => {
+    const authorization = resolveRequestAuthorization({
+      securityRequirements: [{ sanctum: [] }],
+      securitySchemes: {
+        sanctum: {
+          type: 'apiKey',
+          in: 'header',
+          name: 'Authorization',
+        },
+      },
+      credentials: {
+        sanctum: 'secret-token',
+      },
+    })
+
+    expect(authorization.hasSatisfiedRequirement).toBe(true)
+    expect(authorization.target.headers.Authorization).toBe('Bearer secret-token')
+  })
+
+  test('preserves explicit Authorization apiKey credential schemes', () => {
+    const authorization = resolveRequestAuthorization({
+      securityRequirements: [{ sanctum: [] }],
+      securitySchemes: {
+        sanctum: {
+          type: 'apiKey',
+          in: 'header',
+          name: 'Authorization',
+        },
+      },
+      credentials: {
+        sanctum: 'Token secret-token',
+      },
+    })
+
+    expect(authorization.hasSatisfiedRequirement).toBe(true)
+    expect(authorization.target.headers.Authorization).toBe('Token secret-token')
+  })
+
   test('keeps cookie credentials for generated requests but flags them as browser-forbidden headers', () => {
     const authorization = resolveRequestAuthorization({
       securityRequirements: [{ cookieAuth: [] }],
