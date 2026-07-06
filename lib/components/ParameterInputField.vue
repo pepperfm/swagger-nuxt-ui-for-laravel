@@ -39,7 +39,6 @@ function encodeOptionValue(value: string | number | boolean): string {
   return `${typeof value}:${String(value)}`
 }
 
-const controlSize = 'md'
 const dateInput = useTemplateRef<InputDateTemplateRef>('dateInput')
 const isDatePickerOpen = ref(false)
 const datePickerLocale = ref<string | undefined>()
@@ -351,9 +350,8 @@ watch(
       label-key="label"
       :placeholder="spec.placeholder"
       :search-input="true"
-      :size="controlSize"
       :disabled="disabled"
-      class="w-full min-h-11"
+      class="w-full"
     />
 
     <USelectMenu
@@ -365,9 +363,8 @@ watch(
       :placeholder="spec.placeholder"
       :search-input="true"
       multiple
-      :size="controlSize"
       :disabled="disabled"
-      class="w-full min-h-11"
+      class="w-full"
     />
 
     <UCheckboxGroup
@@ -375,7 +372,6 @@ watch(
       v-model="checkboxValue"
       :items="stringOptions"
       variant="list"
-      :size="controlSize"
       :disabled="disabled"
       class="w-full"
     />
@@ -385,18 +381,16 @@ watch(
       v-model="radioValue"
       :items="stringOptions"
       variant="list"
-      :size="controlSize"
       :disabled="disabled"
       class="w-full"
     />
 
     <div
       v-else-if="spec.control === 'boolean'"
-      class="min-h-11 flex items-center"
+      class="flex items-center"
     >
       <USwitch
         v-model="booleanValue"
-        :size="controlSize"
         :disabled="disabled"
       />
     </div>
@@ -408,8 +402,7 @@ watch(
       :max="sliderMax"
       :step="sliderStep"
       :disabled="disabled"
-      :size="controlSize"
-      class="w-full min-h-11"
+      class="w-full"
     />
 
     <UInputNumber
@@ -419,9 +412,8 @@ watch(
       :max="spec.max ?? undefined"
       :step="spec.step ?? undefined"
       :placeholder="spec.placeholder"
-      :size="controlSize"
       :disabled="disabled"
-      class="w-full min-h-11"
+      class="w-full"
     />
 
     <UTextarea
@@ -431,7 +423,6 @@ watch(
       :rows="3"
       autoresize
       :maxrows="10"
-      :size="controlSize"
       :disabled="disabled"
       class="w-full"
     />
@@ -441,9 +432,8 @@ watch(
       ref="dateInput"
       v-model="calendarDateValue"
       :locale="datePickerLocale"
-      :size="controlSize"
       :disabled="disabled"
-      class="w-full min-h-11"
+      class="w-full"
     >
       <template #trailing>
         <UPopover
@@ -454,7 +444,6 @@ watch(
           <UButton
             color="neutral"
             variant="link"
-            size="sm"
             icon="i-lucide-calendar"
             :disabled="disabled"
             aria-label="Select a date"
@@ -480,18 +469,16 @@ watch(
       v-model="stringValue"
       type="time"
       :placeholder="spec.placeholder"
-      :size="controlSize"
       :disabled="disabled"
-      class="w-full min-h-11"
+      class="w-full"
     />
 
     <UInput
       v-else-if="spec.control === 'text' && spec.multiple"
       v-model="collectionTextValue"
       :placeholder="spec.placeholder"
-      :size="controlSize"
       :disabled="disabled"
-      class="w-full min-h-11"
+      class="w-full"
     />
 
     <UTextarea
@@ -501,7 +488,6 @@ watch(
       :rows="3"
       autoresize
       :maxrows="10"
-      :size="controlSize"
       :disabled="disabled"
       class="w-full"
     />
@@ -510,9 +496,8 @@ watch(
       v-else
       v-model="stringValue"
       :placeholder="spec.placeholder"
-      :size="controlSize"
       :disabled="disabled"
-      class="w-full min-h-11"
+      class="w-full"
     />
   </div>
 </template>
