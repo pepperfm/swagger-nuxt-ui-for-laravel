@@ -97,7 +97,7 @@ docs/
 | `lib/composables/useViewerAuthorization.ts` | Security credential store and resolution |
 
 ## Commit And Release Rules
-- Before committing any frontend/viewer change that can affect the packaged Laravel runtime, run `bun run build:bridge-assets` and include the updated `resources/assets/viewer.js` and `resources/assets/viewer.css` in the commit.
+- Before committing any frontend/viewer change that can affect the packaged Laravel runtime, run `bun run check:bridge-assets` and include the updated `resources/assets/viewer.js` and `resources/assets/viewer.css` in the commit.
 - Composer consumers do not build these assets; the tagged package must already contain current files under `resources/assets/`.
 
 ## Documentation

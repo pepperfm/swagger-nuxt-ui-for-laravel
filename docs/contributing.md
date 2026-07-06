@@ -13,8 +13,9 @@
 ```bash
 bun install
 bun run lint
+bun run test
 bun run typecheck
-bun run build:bridge-assets
+bun run check:bridge-assets
 ```
 
 For PHP syntax checks (optional):

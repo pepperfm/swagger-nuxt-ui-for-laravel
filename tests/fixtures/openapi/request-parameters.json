@@ -1,0 +1,123 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Swagger Nuxt UI Request Parameters Fixture",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/partner/dashboard": {
+      "get": {
+        "summary": "Read partner dashboard metrics",
+        "operationId": "getPartnerDashboard",
+        "parameters": [
+          {
+            "name": "operations_from",
+            "in": "query",
+            "required": true,
+            "description": "Start of the operations period.",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2026-06-10"
+            }
+          },
+          {
+            "name": "operations_to",
+            "in": "query",
+            "required": true,
+            "description": "End of the operations period.",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2026-06-23"
+            }
+          },
+          {
+            "name": "analytics_period",
+            "in": "query",
+            "description": "Revenue chart period.",
+            "schema": {
+              "type": "string",
+              "enum": ["1w", "1m", "1y", "all"],
+              "default": "1y"
+            }
+          },
+          {
+            "name": "analytics_offset",
+            "in": "query",
+            "description": "Revenue chart period offset.",
+            "schema": {
+              "type": "integer",
+              "minimum": -12,
+              "maximum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "description": "Dashboard blocks to include.",
+            "style": "form",
+            "explode": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["profile", "revenue", "sim_cards", "analytics", "operations"]
+              },
+              "default": ["profile", "revenue", "operations"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard metrics.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DashboardResponse": {
+        "type": "object",
+        "required": ["period", "revenue", "operations"],
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/DateRange"
+          },
+          "revenue": {
+            "type": "number",
+            "format": "float",
+            "example": 18320.45
+          },
+          "operations": {
+            "type": "integer",
+            "example": 142
+          }
+        }
+      },
+      "DateRange": {
+        "type": "object",
+        "required": ["from", "to"],
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    }
+  }
+}

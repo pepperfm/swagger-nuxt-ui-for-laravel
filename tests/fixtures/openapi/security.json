@@ -1,0 +1,121 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Swagger Nuxt UI Security Fixture",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/me": {
+      "get": {
+        "summary": "Read current profile",
+        "operationId": "getCurrentProfile",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKeyHeader": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current profile.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sanctum/profile": {
+      "get": {
+        "summary": "Read profile with Authorization apiKey",
+        "operationId": "getSanctumProfile",
+        "security": [
+          {
+            "authorizationApiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current profile.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/session/profile": {
+      "get": {
+        "summary": "Read profile with cookie auth",
+        "operationId": "getSessionProfile",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current profile.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "apiKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      },
+      "authorizationApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization"
+      },
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "session"
+      }
+    },
+    "schemas": {
+      "Profile": {
+        "type": "object",
+        "required": ["id", "email"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        }
+      }
+    }
+  }
+}

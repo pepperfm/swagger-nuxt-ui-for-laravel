@@ -23,6 +23,7 @@
     "build:lib": "vite build --config vite.lib.config.ts && vue-tsc -p tsconfig.lib.json --declaration --emitDeclarationOnly",
     "build:viewer": "vite build --logLevel error --config vite.viewer.config.ts",
     "build:bridge-assets": "vite build --logLevel error --config vite.viewer.config.ts && bun ./scripts/sync-bridge-viewer-assets.mjs",
+    "check:bridge-assets": "bun ./scripts/check-bridge-viewer-assets.mjs",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "bridge:install": "bun ./scripts/cli/install-bridge.mjs",
@@ -34,42 +35,45 @@
     "typecheck": "nuxt typecheck"
   },
   "peerDependencies": {
-    "vue": "^3.5.34"
+    "vue": "^3.5.39"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.109",
+    "@iconify-json/lucide": "^1.2.116",
     "@internationalized/date": "^3.12.2",
     "@nuxt/ui": "^4.9.0",
     "@vueuse/core": "^14.3.0",
-    "nuxt": "^4.4.6",
-    "vue-router": "^5.0.7"
+    "nuxt": "^4.4.8",
+    "vue-router": "^5.1.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^9.0.0",
-    "@nuxt/eslint": "^1.15.2",
-    "@types/node": "^25.9.1",
+    "@antfu/eslint-config": "^9.1.0",
+    "@nuxt/eslint": "^1.16.0",
+    "@types/node": "^25.9.4",
     "@vitejs/plugin-vue": "^6.0.7",
-    "eslint": "^10.4.0",
+    "eslint": "^10.6.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.14",
-    "vue-tsc": "^3.3.1"
+    "vite": "^8.1.3",
+    "vue-tsc": "^3.3.6"
   },
   "resolutions": {
+    "@babel/core": "7.29.7",
     "brace-expansion": "5.0.6",
     "defu": "6.1.7",
+    "esbuild": "0.28.1",
     "estree-walker": "2.0.2",
     "flatted": "3.4.2",
     "glob": "13.0.6",
     "h3": "1.15.11",
+    "launch-editor": "2.14.1",
     "lodash": "4.18.1",
     "minimatch": "10.2.5",
     "picomatch": "4.0.4",
     "postcss": "8.5.15",
     "rollup": "4.60.4",
-    "tar": "7.5.15",
+    "tar": "7.5.19",
     "unimport": "4.1.1",
-    "vite": "8.0.14",
-    "ws": "8.20.1",
+    "vite": "8.1.3",
+    "ws": "8.21.0",
     "yaml": "2.9.0"
   }
 }

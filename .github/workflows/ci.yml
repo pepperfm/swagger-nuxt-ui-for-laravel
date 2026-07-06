@@ -58,14 +58,5 @@ jobs:
       - name: Build Nuxt demo
         run: bun run build
 
-      - name: Build bridge viewer assets
-        run: bun run build:bridge-assets
-
-      - name: Verify viewer artifacts
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -f dist/viewer/viewer.js
-          test -f dist/viewer/viewer.css
-          test -f resources/assets/viewer.js
-          test -f resources/assets/viewer.css
+      - name: Verify bridge viewer assets
+        run: bun run check:bridge-assets
