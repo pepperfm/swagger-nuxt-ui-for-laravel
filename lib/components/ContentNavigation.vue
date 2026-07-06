@@ -115,7 +115,7 @@ const filteredSchemaItems = computed(() => {
         >
           <a
             :href="`#${child.anchor}`"
-            class="group flex items-center justify-between w-full cursor-pointer text-left text-sm focus:outline-none px-2 py-1 rounded-lg transition-colors text-primary"
+            class="group flex items-center justify-between w-full cursor-pointer text-left text-xs focus:outline-none px-2 py-1 rounded-lg transition-colors text-primary"
             :class="[
               props.selectedOperationId === child.operationId
                 ? 'bg-primary/10 dark:bg-primary/10'
