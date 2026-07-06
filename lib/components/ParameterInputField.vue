@@ -1,10 +1,18 @@
 <script setup lang="ts">
+import type { DateValue } from '@internationalized/date'
 import type {
   RequestEmulatorParamCollectionValue,
   RequestEmulatorParamValue,
   ResolvedParameterInputSpec,
 } from '../types'
-import { computed, watch } from 'vue'
+import { CalendarDate } from '@internationalized/date'
+import {
+  computed,
+  onMounted,
+  ref,
+  useTemplateRef,
+  watch,
+} from 'vue'
 
 const props = withDefaults(defineProps<{
   modelValue: RequestEmulatorParamValue
@@ -18,11 +26,23 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: RequestEmulatorParamValue): void
 }>()
 
+interface InputDateTemplateRef {
+  inputsRef?: Array<{ $el?: HTMLElement }>
+}
+
+type CalendarModelUpdate = DateValue | {
+  start?: DateValue
+  end?: DateValue
+} | DateValue[] | null | undefined
+
 function encodeOptionValue(value: string | number | boolean): string {
   return `${typeof value}:${String(value)}`
 }
 
 const controlSize = 'md'
+const dateInput = useTemplateRef<InputDateTemplateRef>('dateInput')
+const isDatePickerOpen = ref(false)
+const datePickerLocale = ref<string | undefined>()
 const sliderMin = computed(() => props.spec.min ?? 0)
 const sliderMax = computed(() => props.spec.max ?? 100)
 const sliderStep = computed(() => {
@@ -49,6 +69,75 @@ const stringValue = computed<string>({
     emit('update:modelValue', value)
   },
 })
+
+function toCalendarDate(value: unknown): CalendarDate | null {
+  if (typeof value !== 'string') {
+    return null
+  }
+
+  const normalized = value.trim()
+  const dateText = normalized.includes('T') ? normalized.split('T')[0] ?? '' : normalized
+  const match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(dateText)
+  if (!match) {
+    return null
+  }
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  if (
+    !Number.isInteger(year)
+    || !Number.isInteger(month)
+    || !Number.isInteger(day)
+    || month < 1
+    || month > 12
+    || day < 1
+    || day > 31
+  ) {
+    return null
+  }
+
+  try {
+    const date = new CalendarDate(year, month, day)
+    return date.year === year && date.month === month && date.day === day ? date : null
+  } catch {
+    return null
+  }
+}
+
+function formatCalendarDate(value: DateValue | null | undefined): string {
+  if (!value) {
+    return ''
+  }
+
+  const year = String(value.year).padStart(4, '0')
+  const month = String(value.month).padStart(2, '0')
+  const day = String(value.day).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+function isSingleDateValue(value: CalendarModelUpdate): value is DateValue {
+  return !!value
+    && !Array.isArray(value)
+    && 'year' in value
+    && 'month' in value
+    && 'day' in value
+}
+
+const calendarDateValue = computed<CalendarDate | null>({
+  get() {
+    return toCalendarDate(props.modelValue)
+  },
+  set(value) {
+    emit('update:modelValue', formatCalendarDate(value))
+  },
+})
+
+function onCalendarDateUpdate(value: CalendarModelUpdate) {
+  emit('update:modelValue', formatCalendarDate(isSingleDateValue(value) ? value : null))
+  isDatePickerOpen.value = false
+}
 
 const numberValue = computed<number | undefined>({
   get() {
@@ -223,6 +312,10 @@ const radioValue = computed<string | undefined>({
   },
 })
 
+onMounted(() => {
+  datePickerLocale.value = window.navigator.language || undefined
+})
+
 watch(
   () => props.spec.control,
   (control) => {
@@ -343,15 +436,44 @@ watch(
       class="w-full"
     />
 
-    <UInput
+    <UInputDate
       v-else-if="spec.control === 'date'"
-      v-model="stringValue"
-      type="date"
-      :placeholder="spec.placeholder"
+      ref="dateInput"
+      v-model="calendarDateValue"
+      :locale="datePickerLocale"
       :size="controlSize"
       :disabled="disabled"
       class="w-full min-h-11"
-    />
+    >
+      <template #trailing>
+        <UPopover
+          v-model:open="isDatePickerOpen"
+          :reference="dateInput?.inputsRef?.[3]?.$el"
+          :content="{ side: 'bottom', align: 'end', sideOffset: 8 }"
+        >
+          <UButton
+            color="neutral"
+            variant="link"
+            size="sm"
+            icon="i-lucide-calendar"
+            :disabled="disabled"
+            aria-label="Select a date"
+            class="px-0"
+          />
+
+          <template #content>
+            <UCalendar
+              :model-value="calendarDateValue"
+              :locale="datePickerLocale"
+              :disabled="disabled"
+              initial-focus
+              class="p-2"
+              @update:model-value="onCalendarDateUpdate"
+            />
+          </template>
+        </UPopover>
+      </template>
+    </UInputDate>
 
     <UInput
       v-else-if="spec.control === 'time'"

@@ -3,6 +3,7 @@
     "target": "ES2022",
     "jsx": "preserve",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "rootDir": "lib",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "types": ["node"],
